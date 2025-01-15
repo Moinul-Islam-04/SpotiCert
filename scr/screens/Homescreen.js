@@ -11,7 +11,17 @@ const Homescreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Your Top Artists</Text>
+            <View style={styles.header}>
+                <Text style={styles.title}>Your Top Artists</Text>
+                <TouchableOpacity 
+                    style={styles.profileButton}
+                    onPress={() => navigation.navigate('Profile')}
+                >
+                    <View style={styles.profileIcon}>
+                        <Text style={styles.profileInitial}>J</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
             
             <View style={styles.artistsContainer}>
                 {topArtists.map((artist) => (
@@ -43,12 +53,33 @@ const styles = StyleSheet.create({
         backgroundColor: '#121212',
         padding: 20,
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 40,
+        marginBottom: 30,
+    },
     title: {
         fontSize: 28,
         fontWeight: 'bold',
         color: '#FFFFFF',
-        marginTop: 40,
-        marginBottom: 30,
+    },
+    profileButton: {
+        marginLeft: 'auto',
+    },
+    profileIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#1DB954',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    profileInitial: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: 'bold',
     },
     artistsContainer: {
         width: '100%',
