@@ -37,12 +37,6 @@ const Homescreen = ({ navigation }) => {
                 ))}
             </View>
 
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => navigation.goBack()}
-            >
-                <Text style={styles.backButtonText}>Go Back</Text>
-            </TouchableOpacity>
         </View>
     );
 };
