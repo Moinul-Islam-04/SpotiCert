@@ -1,41 +1,55 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  ScrollView, 
+  StyleSheet,
+  Image,
+  ActivityIndicator 
+} from 'react-native';
+import spotifyConcertService from '../services/spotifyConcertService';
 
 const Homescreen = ({ navigation }) => {
-    // Mock data for top artists - replace with actual data later
-    const topArtists = [
-        { id: 1, name: "Drake" },
-        { id: 2, name: "Taylor Swift" },
-        { id: 3, name: "The Weeknd" },
-    ];
+    const [loading, setLoading] = useState(true);
+    const [topArtists, setTopArtists] = useState([]);
+    const [recommendedConcerts, setRecommendedConcerts] = useState([]);
+    const [userProfile, setUserProfile] = useState(null);
 
-    // Mock data for recommended concerts
-    const recommendedConcerts = [
-        {
-            id: 1,
-            artist: "Drake",
-            tour: "For All The Dogs Tour",
-            date: "Mar 15, 2025",
-            venue: "Madison Square Garden",
-            price: "From $89.99"
-        },
-        {
-            id: 2,
-            artist: "The Weeknd",
-            tour: "After Hours Tour",
-            date: "Apr 22, 2025",
-            venue: "Barclays Center",
-            price: "From $75.00"
-        },
-        {
-            id: 3,
-            artist: "Travis Scott",
-            tour: "Utopia Tour",
-            date: "May 5, 2025",
-            venue: "UBS Arena",
-            price: "From $95.00"
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [artists, profile] = await Promise.all([
+                spotifyConcertService.getUserTopArtists(),
+                spotifyConcertService.getUserProfile()
+            ]);
+
+            setTopArtists(artists);
+            setUserProfile(profile);
+
+            // Generate concert recommendations based on top artists
+            const concerts = artists.map(artist => 
+                spotifyConcertService.generateConcertData(artist)
+            );
+            setRecommendedConcerts(concerts);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color="#1DB954" />
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.container}>
@@ -46,7 +60,9 @@ const Homescreen = ({ navigation }) => {
                     onPress={() => navigation.navigate('Profile')}
                 >
                     <View style={styles.profileIcon}>
-                        <Text style={styles.profileInitial}>J</Text>
+                        <Text style={styles.profileInitial}>
+                            {userProfile?.display_name?.[0]?.toUpperCase() || 'U'}
+                        </Text>
                     </View>
                 </TouchableOpacity>
             </View>
@@ -58,7 +74,20 @@ const Homescreen = ({ navigation }) => {
                         style={styles.artistBox}
                         onPress={() => navigation.navigate('ArtistDetail', { artistId: artist.id })}
                     >
-                        <Text style={styles.artistName}>{artist.name}</Text>
+                        <View style={styles.artistInfo}>
+                            {artist.images[0]?.url ? (
+                                <Image 
+                                    source={{ uri: artist.images[0].url }}
+                                    style={styles.artistImage}
+                                />
+                            ) : null}
+                            <View>
+                                <Text style={styles.artistName}>{artist.name}</Text>
+                                <Text style={styles.artistGenre}>
+                                    {artist.genres[0] || 'Artist'}
+                                </Text>
+                            </View>
+                        </View>
                         <View style={styles.arrowButton}>
                             <Text style={styles.arrowText}>→</Text>
                         </View>
@@ -80,9 +109,18 @@ const Homescreen = ({ navigation }) => {
                         style={styles.concertCard}
                         onPress={() => navigation.navigate('ArtistDetail', { artistId: concert.id })}
                     >
-                        <View style={styles.concertImagePlaceholder}>
-                            <Text style={styles.concertImageText}>{concert.artist.charAt(0)}</Text>
-                        </View>
+                        {concert.image ? (
+                            <Image 
+                                source={{ uri: concert.image }}
+                                style={styles.concertImage}
+                            />
+                        ) : (
+                            <View style={styles.concertImagePlaceholder}>
+                                <Text style={styles.concertImageText}>
+                                    {concert.artist.charAt(0)}
+                                </Text>
+                            </View>
+                        )}
                         <View style={styles.concertInfo}>
                             <Text style={styles.concertArtist}>{concert.artist}</Text>
                             <Text style={styles.concertTour}>{concert.tour}</Text>
@@ -99,144 +137,34 @@ const Homescreen = ({ navigation }) => {
     );
 };
 
+// Extend your existing styles
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#121212',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    // ... your existing styles ...
+    loadingContainer: {
+        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 40,
-        marginBottom: 30,
-        paddingHorizontal: 20,
+        paddingTop: 50,
     },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
+    artistInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
     },
-    profileButton: {
-        marginLeft: 'auto',
-    },
-    profileIcon: {
+    artistImage: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#1DB954',
-        justifyContent: 'center',
-        alignItems: 'center',
+        marginRight: 12,
     },
-    profileInitial: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
+    artistGenre: {
+        color: '#B3B3B3',
+        fontSize: 14,
     },
-    artistsContainer: {
-        paddingHorizontal: 20,
-        gap: 15,
-        marginBottom: 30,
-    },
-    artistBox: {
-        backgroundColor: '#282828',
-        borderRadius: 15,
-        padding: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    artistName: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: '500',
-    },
-    arrowButton: {
-        backgroundColor: '#1DB954',
-        borderRadius: 25,
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    arrowText: {
-        color: '#FFFFFF',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-    },
-    seeAllText: {
-        color: '#1DB954',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    concertsContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 30,
-    },
-    concertCard: {
-        backgroundColor: '#282828',
-        borderRadius: 15,
-        marginBottom: 15,
-        flexDirection: 'row',
-        overflow: 'hidden',
-    },
-    concertImagePlaceholder: {
+    concertImage: {
         width: 120,
         height: 120,
-        backgroundColor: '#1DB954',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
-    concertImageText: {
-        fontSize: 36,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-    },
-    concertInfo: {
-        flex: 1,
-        padding: 15,
-    },
-    concertArtist: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    concertTour: {
-        color: '#B3B3B3',
-        fontSize: 14,
-        marginBottom: 8,
-    },
-    concertDetails: {
-        marginBottom: 8,
-    },
-    concertDate: {
-        color: '#1DB954',
-        fontSize: 14,
-        fontWeight: '500',
-        marginBottom: 2,
-    },
-    concertVenue: {
-        color: '#B3B3B3',
-        fontSize: 14,
-    },
-    concertPrice: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: '500',
-    },
+    // ... rest of your existing styles ...
 });
 
 export default Homescreen;

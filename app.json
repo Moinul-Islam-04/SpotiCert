@@ -1,7 +1,39 @@
 {
   "expo": {
-    "name": "SpotiCert",
-    "slug": "SpotiCert",
-    "version": "1.0.0"
+    "name": "Spoticert",
+    "slug": "spoticert-slug",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121212"
+    },
+    "scheme": "your-app-scheme",
+    "userInterfaceStyle": "dark",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourapp.name"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#121212"
+      },
+      "package": "com.yourapp.name"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-auth-session"
+    ]
   }
 }

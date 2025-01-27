@@ -1,86 +1,128 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
+import authService from '../services/auth_service';
 
-const Loginscreen = ({ navigation }) => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+const LoginScreen = ({ navigation }) => {
+  const [loading, setLoading] = useState(false);
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Welcome to SpotiCert!</Text>
-            
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Username"
-                    placeholderTextColor="#B3B3B3"
-                    value={username}
-                    onChangeText={setUsername}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    placeholderTextColor="#B3B3B3"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                />
+  const handleSpotifyLogin = async () => {
+    try {
+      setLoading(true);
+      await authService.authorizeSpotify();
+      navigation.replace('Home');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to login with Spotify. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <Image 
+          source={require('../assets/app-logo.png')} // Make sure to add your app logo
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        
+        <Text style={styles.title}>Welcome to YourApp</Text>
+        <Text style={styles.subtitle}>Listen together with friends</Text>
+
+        <TouchableOpacity 
+          style={styles.spotifyButton}
+          onPress={handleSpotifyLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <View style={styles.buttonContent}>
+              <Image 
+                source={require('../assets/spotify-icon.png')} // Add Spotify icon
+                style={styles.spotifyIcon}
+              />
+              <Text style={styles.buttonText}>
+                Login with Spotify
+              </Text>
             </View>
+          )}
+        </TouchableOpacity>
+      </View>
 
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => navigation.navigate('MainTabs')}
-            >
-                <Text style={styles.buttonText}>Log In</Text>
-            </TouchableOpacity>
-        </View>
-    );
+      <Text style={styles.footer}>
+        By continuing, you agree to our Terms of Service and Privacy Policy
+      </Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#121212', // Spotify's black background
-        padding: 20,
-    },
-    title: {
-        fontSize: 28,
-        marginBottom: 40,
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-    },
-    inputContainer: {
-        width: '100%',
-        marginBottom: 30,
-    },
-    input: {
-        backgroundColor: '#282828', // Spotify's darker gray for input fields
-        width: '100%',
-        padding: 15,
-        borderRadius: 4,
-        color: '#FFFFFF',
-        fontSize: 16,
-        marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#282828',
-    },
-    button: {
-        backgroundColor: '#1DB954', // Spotify green
-        paddingVertical: 15,
-        paddingHorizontal: 25,
-        borderRadius: 25,
-        width: '100%',
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#B3B3B3',
+    marginBottom: 48,
+    textAlign: 'center',
+  },
+  spotifyButton: {
+    backgroundColor: '#1DB954',
+    borderRadius: 25,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    width: '100%',
+    maxWidth: 300,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spotifyIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  footer: {
+    color: '#B3B3B3',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });
 
-export default Loginscreen;
+export default LoginScreen;
